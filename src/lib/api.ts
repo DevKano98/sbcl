@@ -7,6 +7,8 @@ type Action =
 
 type ApiResponse = { success: boolean; data?: { registration_id?: string }; message?: string }
 
+export class RegistrationApiError extends Error {}
+
 async function postActionOnce(url: string, body: Action): Promise<ApiResponse> {
   const response = await fetch(url, {
     method: 'POST',
@@ -19,7 +21,7 @@ async function postActionOnce(url: string, body: Action): Promise<ApiResponse> {
 
   const result: ApiResponse = await response.json()
   if (!result.success) {
-    throw new Error(result.message === 'Registration not found.' ? 'registration_not_found' : 'request_failed')
+    throw new RegistrationApiError(result.message || 'Registration service request failed.')
   }
   return result
 }
@@ -38,12 +40,12 @@ async function postAction(body: Action): Promise<ApiResponse> {
     return await postActionOnce(url, body)
   } catch (error) {
     console.error('Registration service request failed:', error)
-    if (error instanceof Error && error.message === 'registration_not_found') throw error
+    if (error instanceof RegistrationApiError && error.message === 'Registration not found.') throw error
     try {
       return await postActionOnce(url, body)
     } catch (retryError) {
       console.error('Registration service retry failed:', retryError)
-      if (retryError instanceof Error && retryError.message === 'registration_not_found') throw retryError
+      if (retryError instanceof RegistrationApiError) throw retryError
       throw new Error('service_unavailable')
     }
   }

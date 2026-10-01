@@ -6,7 +6,7 @@ import { FormField } from '../components/FormField'
 import { LoadingButton } from '../components/LoadingButton'
 import { StepIndicator } from '../components/StepIndicator'
 import { Toast } from '../components/Toast'
-import { completeRegistration, markAwsClicked } from '../lib/api'
+import { completeRegistration, markAwsClicked, RegistrationApiError } from '../lib/api'
 import { getSavedRegistration, saveCompletion } from '../lib/storage'
 import { validateBuilder } from '../lib/validation'
 
@@ -55,7 +55,7 @@ export function BuilderPage() {
       saveCompletion(builderAlias)
       navigate(`/success/${id}`)
     } catch (error) {
-      setToast(error instanceof Error && error.message === 'registration_not_found' ? 'Registration not found.' : 'Something went wrong. Please try again.')
+      setToast(error instanceof RegistrationApiError ? error.message : 'Unable to save your Builder Alias. Please check your connection and try again.')
     } finally {
       submittingRef.current = false
       setLoading(false)

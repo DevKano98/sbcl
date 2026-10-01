@@ -3,9 +3,9 @@
  * Deploy as a Web App that executes as you (the sheet owner).
  */
 const SHEET_NAME = 'Registrations';
-const HEADERS = [
+const REQUIRED_HEADERS = [
   'registration_id', 'full_name', 'email', 'phone', 'college', 'branch', 'year',
-  'aws_builder_alias', 'aws_display_name', 'status', 'created_at', 'updated_at'
+  'aws_builder_alias', 'status', 'created_at', 'updated_at'
 ];
 
 function doPost(e) {
@@ -44,7 +44,9 @@ function doPost(e) {
         updated_at: now
       };
       const row = Array(sheet.getLastColumn()).fill('');
-      HEADERS.forEach(function (header) { row[columns[header] - 1] = values[header]; });
+      Object.keys(values).forEach(function (header) {
+        if (columns[header]) row[columns[header] - 1] = values[header];
+      });
       sheet.appendRow(row);
       return json({ success: true, data: { registration_id: id } });
     }
@@ -63,7 +65,7 @@ function doPost(e) {
 
     const alias = requiredAlias(body.aws_builder_alias);
     sheet.getRange(rowNumber, columns.aws_builder_alias).setValue(alias);
-    sheet.getRange(rowNumber, columns.aws_display_name).setValue('');
+    if (columns.aws_display_name) sheet.getRange(rowNumber, columns.aws_display_name).setValue('');
     sheet.getRange(rowNumber, columns.status).setValue('completed');
     sheet.getRange(rowNumber, columns.updated_at).setValue(now);
     return json({ success: true, data: {} });
@@ -82,7 +84,7 @@ function getColumns(sheet) {
   const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
   const columns = {};
   headers.forEach(function (header, index) { columns[String(header).trim()] = index + 1; });
-  const missing = HEADERS.filter(function (header) { return !columns[header]; });
+  const missing = REQUIRED_HEADERS.filter(function (header) { return !columns[header]; });
   if (missing.length) throw new Error('Sheet headers are missing: ' + missing.join(', '));
   return columns;
 }
