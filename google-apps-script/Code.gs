@@ -61,10 +61,9 @@ function doPost(e) {
       return json({ success: true, data: {} });
     }
 
-    const alias = required(body.aws_builder_alias, 'Builder Alias');
-    const displayName = required(body.aws_display_name, 'Name on AWS');
+    const alias = requiredAlias(body.aws_builder_alias);
     sheet.getRange(rowNumber, columns.aws_builder_alias).setValue(alias);
-    sheet.getRange(rowNumber, columns.aws_display_name).setValue(displayName);
+    sheet.getRange(rowNumber, columns.aws_display_name).setValue('');
     sheet.getRange(rowNumber, columns.status).setValue('completed');
     sheet.getRange(rowNumber, columns.updated_at).setValue(now);
     return json({ success: true, data: {} });
@@ -107,6 +106,13 @@ function required(value, label) {
   if (!result) throw new Error(label + ' is required.');
   // Keep spreadsheet formulas supplied as form input as plain text.
   return /^[=+\-@]/.test(result) ? "'" + result : result;
+}
+
+function requiredAlias(value) {
+  const alias = clean(value).replace(/^@+/, '');
+  if (!alias) throw new Error('Builder Alias is required.');
+  // Apostrophe forces Google Sheets to keep the leading @ as text.
+  return "'@" + alias;
 }
 
 function json(value) {

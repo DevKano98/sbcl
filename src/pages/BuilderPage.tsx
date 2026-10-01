@@ -19,8 +19,7 @@ export function BuilderPage() {
   const saved = getSavedRegistration()
   const [opened, setOpened] = useState(false)
   const [alias, setAlias] = useState('')
-  const [displayName, setDisplayName] = useState('')
-  const [errors, setErrors] = useState({ alias: '', displayName: '' })
+  const [errors, setErrors] = useState({ alias: '' })
   const [loading, setLoading] = useState(false)
   const [toast, setToast] = useState('')
   const submittingRef = useRef(false)
@@ -44,15 +43,16 @@ export function BuilderPage() {
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (submittingRef.current) return
-    const nextErrors = validateBuilder(alias, displayName)
+    const nextErrors = validateBuilder(alias)
     setErrors(nextErrors)
-    if (nextErrors.alias || nextErrors.displayName) return
+    if (nextErrors.alias) return
+    const builderAlias = `@${alias.trim().replace(/^@+/, '')}`
     submittingRef.current = true
     setLoading(true)
     setToast('')
     try {
-      await completeRegistration({ registration_id: id, aws_builder_alias: alias.trim(), aws_display_name: displayName.trim() })
-      saveCompletion(alias.trim())
+      await completeRegistration({ registration_id: id, aws_builder_alias: builderAlias })
+      saveCompletion(builderAlias)
       navigate(`/success/${id}`)
     } catch (error) {
       setToast(error instanceof Error && error.message === 'registration_not_found' ? 'Registration not found.' : 'Something went wrong. Please try again.')
@@ -79,8 +79,7 @@ export function BuilderPage() {
         <div className="my-8 flex items-center gap-3"><span className="h-px flex-1 bg-line" /><span className="text-xs font-semibold uppercase tracking-[0.08em] text-muted">Finished your AWS profile?</span><span className="h-px flex-1 bg-line" /></div>
 
         <form onSubmit={submit} noValidate className="space-y-5">
-          <FormField id="alias" label="AWS Builder Alias *" value={alias} onChange={(e) => { setAlias(e.target.value); setErrors((v) => ({ ...v, alias: '' })) }} error={errors.alias} hint="Use the Builder Alias shown on your AWS Builder Center profile." autoComplete="off" required />
-          <FormField id="aws_display_name" label="Name on AWS *" value={displayName} onChange={(e) => { setDisplayName(e.target.value); setErrors((v) => ({ ...v, displayName: '' })) }} error={errors.displayName} autoComplete="name" required />
+          <FormField id="alias" label="AWS Builder Alias *" value={alias} onChange={(e) => { setAlias(e.target.value); setErrors((v) => ({ ...v, alias: '' })) }} error={errors.alias} hint="Enter your Builder Alias. It will be saved as @alias in the registration sheet." autoComplete="off" required />
           <details className="group rounded-xl border border-line bg-[#fcfcfd] p-4">
             <summary className="flex cursor-pointer list-none items-center justify-between gap-2 text-sm font-semibold text-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange [&::-webkit-details-marker]:hidden">Where do I find my Builder Alias?<ChevronDown size={18} className="shrink-0 text-muted transition group-open:rotate-180" aria-hidden="true" /></summary>
             <div className="pt-4 text-sm leading-relaxed text-muted"><p>Open your AWS Builder Center profile. Look for the Builder Alias shown with your profile details, then copy it exactly into the field above.</p><div className="mt-4 flex min-h-28 flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-slate-300 bg-white text-center text-xs text-muted"><ImageIcon size={22} aria-hidden="true" />Screenshot guide coming soon</div></div>

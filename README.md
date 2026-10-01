@@ -63,7 +63,7 @@ With a deployed Apps Script URL, use a browser to:
 2. Try an empty form and invalid email/phone; inline validation should appear.
 3. Submit valid details; confirm one `started` row with the registration ID.
 4. Open AWS Builder Center; confirm a new tab uses `https://bit.ly/4hWkXKR` and the row changes to `aws_opened`.
-5. Return and submit an alias and AWS display name; confirm the **same row** changes to `completed`.
+5. Return and submit an alias; confirm the **same row** changes to `completed` and `aws_builder_alias` is saved as `@alias`.
 6. Check the success screen, refresh it, and check the alias and ID remain visible.
 7. Try at 375px wide and confirm the page does not scroll horizontally.
 8. Repeated submits for one registration ID are idempotent in Apps Script. The form also disables its button while a request runs.

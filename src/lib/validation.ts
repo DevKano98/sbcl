@@ -26,9 +26,8 @@ export function validateRegistration(values: RegistrationFields): RegistrationEr
   return errors
 }
 
-export function validateBuilder(alias: string, displayName: string) {
+export function validateBuilder(alias: string) {
   return {
-    alias: alias.trim() ? '' : 'Enter your Builder Alias.',
-    displayName: displayName.trim() ? '' : 'Enter the name shown on AWS.',
+    alias: alias.trim().replace(/^@+/, '') ? '' : 'Enter your Builder Alias.',
   }
 }

@@ -12,7 +12,6 @@ export type RegistrationDetails = {
 export type CompletionDetails = {
   registration_id: string
   aws_builder_alias: string
-  aws_display_name: string
 }
 
 export type SavedRegistration = {
