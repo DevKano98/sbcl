@@ -19,7 +19,8 @@ export function BuilderPage() {
   const saved = getSavedRegistration()
   const [opened, setOpened] = useState(false)
   const [alias, setAlias] = useState('')
-  const [errors, setErrors] = useState({ alias: '' })
+  const [displayName, setDisplayName] = useState('')
+  const [errors, setErrors] = useState({ alias: '', displayName: '' })
   const [loading, setLoading] = useState(false)
   const [toast, setToast] = useState('')
   const submittingRef = useRef(false)
@@ -43,15 +44,19 @@ export function BuilderPage() {
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (submittingRef.current) return
-    const nextErrors = validateBuilder(alias)
+    const nextErrors = validateBuilder(alias, displayName)
     setErrors(nextErrors)
-    if (nextErrors.alias) return
+    if (nextErrors.alias || nextErrors.displayName) return
     const builderAlias = `@${alias.trim().replace(/^@+/, '')}`
     submittingRef.current = true
     setLoading(true)
     setToast('')
     try {
-      await completeRegistration({ registration_id: id, aws_builder_alias: builderAlias })
+      await completeRegistration({
+        registration_id: id,
+        aws_builder_alias: builderAlias,
+        aws_display_name: displayName.trim(),
+      })
       saveCompletion(builderAlias)
       navigate(`/success/${id}`)
     } catch (error) {
@@ -80,6 +85,7 @@ export function BuilderPage() {
 
         <form onSubmit={submit} noValidate className="space-y-5">
           <FormField id="alias" label="AWS Builder Alias *" value={alias} onChange={(e) => { setAlias(e.target.value); setErrors((v) => ({ ...v, alias: '' })) }} error={errors.alias} hint="Enter your Builder Alias. It will be saved as @alias in the registration sheet." autoComplete="off" required />
+          <FormField id="aws_display_name" label="Name on AWS Builder Center *" value={displayName} onChange={(e) => { setDisplayName(e.target.value); setErrors((v) => ({ ...v, displayName: '' })) }} error={errors.displayName} hint="Enter the name displayed on your AWS Builder Center profile." autoComplete="name" required />
           <details className="group rounded-xl border border-line bg-[#fcfcfd] p-4">
             <summary className="flex cursor-pointer list-none items-center justify-between gap-2 text-sm font-semibold text-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange [&::-webkit-details-marker]:hidden">Where do I find my Builder Alias?<ChevronDown size={18} className="shrink-0 text-muted transition group-open:rotate-180" aria-hidden="true" /></summary>
             <div className="pt-4 text-sm leading-relaxed text-muted"><p>Open your AWS Builder Center profile. Look for the Builder Alias shown with your profile details, then copy it exactly into the field above.</p><div className="mt-4 flex min-h-28 flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-slate-300 bg-white text-center text-xs text-muted"><ImageIcon size={22} aria-hidden="true" />Screenshot guide coming soon</div></div>
