@@ -4,7 +4,7 @@ const vm = require('node:vm')
 
 const headers = [
   'registration_id', 'full_name', 'email', 'phone', 'college', 'branch', 'year',
-  'aws_builder_alias', 'status', 'created_at', 'updated_at',
+  'aws_builder_alias', 'status', 'created_at',
 ]
 const rows = [headers]
 const sheet = {
@@ -15,6 +15,9 @@ const sheet = {
       getValues: () => Array.from({ length: height }, (_, r) => Array.from({ length: width }, (_, c) => rows[row + r - 1][column + c - 1])),
       getValue: () => rows[row - 1][column - 1],
       setValue(value) { rows[row - 1][column - 1] = value },
+      setValues(values) {
+        values.forEach((valueRow, r) => valueRow.forEach((value, c) => { rows[row + r - 1][column + c - 1] = value }))
+      },
     }
   },
   appendRow(row) { rows.push(row) },
@@ -36,6 +39,7 @@ const registration = {
 
 assert.equal(send(registration).success, true)
 assert.equal(rows.length, 2)
+assert.equal(headers.at(-1), 'updated_at', 'missing required headers must be added automatically')
 assert.equal(rows[1][8], 'started')
 assert.equal(send(registration).success, true)
 assert.equal(rows.length, 2, 'a repeated create must not append another row')

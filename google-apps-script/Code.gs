@@ -81,11 +81,18 @@ function doPost(e) {
 }
 
 function getColumns(sheet) {
-  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  let lastColumn = sheet.getLastColumn();
+  const headers = sheet.getRange(1, 1, 1, lastColumn).getValues()[0];
   const columns = {};
   headers.forEach(function (header, index) { columns[String(header).trim()] = index + 1; });
   const missing = REQUIRED_HEADERS.filter(function (header) { return !columns[header]; });
-  if (missing.length) throw new Error('Sheet headers are missing: ' + missing.join(', '));
+  if (missing.length) {
+    // Support the campaign's earlier sheet layout by adding fields used to
+    // identify and update a registration. New submissions can then complete
+    // without the organizer having to rebuild the sheet manually.
+    sheet.getRange(1, lastColumn + 1, 1, missing.length).setValues([missing]);
+    missing.forEach(function (header, index) { columns[header] = lastColumn + index + 1; });
+  }
   return columns;
 }
 
